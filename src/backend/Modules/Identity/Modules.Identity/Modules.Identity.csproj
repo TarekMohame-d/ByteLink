@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.Extensions.Resilience" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="ZiggyCreatures.FusionCache" />
+    <PackageReference Include="DotNetCore.CAP" />
+    <PackageReference Include="DotNetCore.CAP.PostgreSql" />
+    <PackageReference Include="DotNetCore.CAP.Dashboard" />
+    <PackageReference Include="Savorboard.CAP.InMemoryMessageQueue" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Modules.Identity.IntegrationEvents\Modules.Identity.IntegrationEvents.csproj" />
+  </ItemGroup>
+</Project>
