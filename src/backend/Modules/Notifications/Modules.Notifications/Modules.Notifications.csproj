@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="FluentEmail.Smtp" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="DotNetCore.CAP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Identity\Modules.Identity.IntegrationEvents\Modules.Identity.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Emails\**\*.html" />
+  </ItemGroup>
+</Project>
