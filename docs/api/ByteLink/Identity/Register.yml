@@ -1,0 +1,24 @@
+info:
+  name: Register
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{host}}/identity/register"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Tarek",
+        "lastName": "Mohamed",
+        "email": "tarekmohamed1016@gmail.com",
+        "password": "Tarek12345"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

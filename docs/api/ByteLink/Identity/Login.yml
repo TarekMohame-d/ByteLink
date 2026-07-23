@@ -1,0 +1,22 @@
+info:
+  name: Login
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{host}}/identity/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "tarekmohamed1016@gmail.com",
+        "password": "Tarek12345"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

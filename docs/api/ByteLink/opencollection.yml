@@ -1,0 +1,30 @@
+opencollection: 1.0.0
+
+info:
+  name: ByteLink
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  headers:
+    - name: X-Device-Id
+      value: 019f8080-3bd3-72ef-aefc-053dc62d367d
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git
+    presets:
+      request:
+        type: http
+        url: "{{host}}"

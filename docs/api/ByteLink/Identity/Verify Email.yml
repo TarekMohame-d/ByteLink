@@ -1,0 +1,21 @@
+info:
+  name: Verify Email
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{host}}/identity/verify-email"
+  body:
+    type: json
+    data: |-
+      {
+        "token": "_d0T-UzsYPmAUGAGxg-zg5GuNYYTyiLSdBJ4Bv-mS2M"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:18
+    container_name: bytelink-db
+    environment:
+      POSTGRES_USER: ${DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - 5432:5432
+    volumes:
+      - bytelink_db_data:/var/lib/postgresql
+    networks:
+      - bytelink-net
+
+  valkey:
+    image: valkey/valkey:latest
+    container_name: bytelink-valkey
+    ports:
+      - 6379:6379
+    networks:
+      - bytelink-net
+
+  seq:
+    image: datalust/seq:latest
+    container_name: bytelink-seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_PASSWORD: ${SEQ_PASSWORD}
+    ports:
+      - 5341:5341
+      - 8081:80
+    volumes:
+      - bytelink_seq_data:/data
+    networks:
+      - bytelink-net
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: bytelink-mailpit
+    restart: unless-stopped
+    ports:
+      - 8025:8025
+      - 1025:1025
+    volumes:
+      - bytelink_mailpit_data:/data
+    networks:
+      - bytelink-net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bytelink-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - 5050:80
+    volumes:
+      - bytelink_pgadmin_data:/var/lib/pgadmin
+    networks:
+      - bytelink-net
+
+volumes:
+  bytelink_db_data:
+    name: bytelink_db_data
+  bytelink_pgadmin_data:
+    name: bytelink_pgadmin_data
+  bytelink_mailpit_data:
+    name: bytelink_mailpit_data
+  bytelink_seq_data:
+    name: bytelink_seq_data
+
+networks:
+  bytelink-net:
+    driver: bridge
+    name: bytelink-net

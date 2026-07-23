@@ -1,0 +1,21 @@
+info:
+  name: Resend Email Verification
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{host}}/identity/resend-verification"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "tarekmohamed1016@gmail.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

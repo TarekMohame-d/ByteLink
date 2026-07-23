@@ -1,0 +1,67 @@
+{
+  "folders": [
+    {
+      "name": "⚙️ API",
+      "path": "src/backend",
+    },
+    {
+      "name": "🌐 Client",
+      "path": "src/client",
+    },
+    {
+      "name": "📂 Root / Config",
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/bin": true,
+      "**/obj": true,
+      "src": true,
+    },
+    "search.exclude": {
+      "**/bin": true,
+      "**/obj": true,
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[csharp]": {
+      "editor.defaultFormatter": "csharpier.csharpier-vscode",
+      "editor.semanticHighlighting.enabled": true,
+    },
+    "[sql]": {
+      "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc",
+    },
+    "[xml]": {
+      "editor.defaultFormatter": "csharpier.csharpier-vscode",
+    },
+    "[dockercompose]": {
+      "editor.defaultFormatter": "ms-azuretools.vscode-containers",
+    },
+    "emmet.includeLanguages": {
+      "javascript": "javascriptreact",
+      "typescript": "typescriptreact",
+      "html": "html",
+    },
+    "editor.semanticHighlighting.enabled": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "files.autoSave": "afterDelay",
+    "files.autoSaveWhenNoErrors": true,
+    "files.autoSaveDelay": 1000,
+    "SQL-Formatter-VSCode.dialect": "postgresql",
+    "SQL-Formatter-VSCode.ignoreTabSettings": true,
+    "SQL-Formatter-VSCode.keywordCase": "upper",
+    "SQL-Formatter-VSCode.tabSizeOverride": 2,
+    "SQL-Formatter-VSCode.insertSpacesOverride": true,
+    "dotrush.roslyn.projectOrSolutionFiles": ["./ByteLink.slnx"],
+    "biome.enabled": false,
+    "emmet.showExpandedAbbreviation": "never",
+    "js/ts.tsdk.path": "/home/tarek/Projects/Fullstack/ByteLink/src/client/app/node_modules/typescript/lib",
+    "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+    "js/ts.suggest.autoImports": true,
+    "csharpextensions.privateMemberPrefix": "_",
+    "csharpextensions.useThisForCtorAssignments": false,
+    "csharpextensions.useFileScopedNamespace": true,
+  },
+}
