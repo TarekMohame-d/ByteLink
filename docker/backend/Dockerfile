@@ -1,45 +1,50 @@
+# syntax=docker/dockerfile:1-labs
+
 # ============================
-# Stage 1 - Build React App
+# Stage 1 - Base Runtime
 # ============================
-FROM node:24-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+
+WORKDIR /app
+EXPOSE 8080
+
+USER $APP_UID
+
+# ============================
+# Stage 2 - Build
+# ============================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-# Enable pnpm via Corepack
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable pnpm
+# Copy solution & props files for restore caching
+COPY Directory.Build.props .
+COPY Directory.Packages.props .
+COPY ByteLink.slnx .
 
-# Copy dependency files first for layer caching
-COPY src/client/app/package.json .
-COPY src/client/app/pnpm-lock.yaml .
+# Copies ALL .csproj files inside 'src' and preserves their folder structure
+COPY --parents src/**/*.csproj ./
 
-# Install dependencies using BuildKit cache
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm config set store-dir /pnpm/store && \
-    pnpm install --frozen-lockfile
+# Cache NuGet packages across builds
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet restore src/backend/Host/ByteLink.Api/ByteLink.Api.csproj
 
-# Copy application source
-COPY src/client/app .
+COPY . .
 
-# Build client bundle
-RUN pnpm build
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish src/backend/Host/ByteLink.Api/ByteLink.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    /p:UseAppHost=false
 
 # ============================
-# Stage 2 - Production Runtime
+# Stage 3 - Final Runtime
 # ============================
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS final
+FROM base AS final
 
-# Configure container health check targeting the /health endpoint
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+WORKDIR /app
 
-# Copy custom Nginx configuration (configured to listen on 8080)
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/publish .
 
-# Copy compiled static assets
-COPY --from=build /src/dist /usr/share/nginx/html
-
-EXPOSE 8080
-
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["dotnet", "ByteLink.Api.dll"]
