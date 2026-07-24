@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.Notifications.Infrastructure.Services;
@@ -18,12 +20,19 @@ internal static class DependencyInjection
 
         var assembly = typeof(NotificationsModuleExtensions).Assembly;
 
+        var smtpClient = new SmtpClient(emailSettings.SmtpServer, int.Parse(emailSettings.SmtpPort))
+        {
+            EnableSsl = emailSettings.EnableSsl,
+            Credentials = string.IsNullOrWhiteSpace(emailSettings.AppPassword)
+                ? null
+                : new NetworkCredential(emailSettings.SenderEmail, emailSettings.AppPassword),
+        };
+
         services
             .AddFluentEmail(emailSettings.SenderEmail, emailSettings.SenderName)
-            .AddSmtpSender(emailSettings.SmtpServer, int.Parse(emailSettings.SmtpPort));
+            .AddSmtpSender(smtpClient);
 
         services.AddSingleton<IFileReader, FileReader>();
-
         services.AddIntegrationEventHandlersFromAssembly(assembly);
 
         return services;

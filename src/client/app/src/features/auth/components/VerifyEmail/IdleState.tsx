@@ -1,7 +1,9 @@
 import clsx from "clsx";
 import { LinkIcon, MailOpen } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useResendVerification } from "../../hooks/use-verify";
 import { AuthCard } from "../AuthCard";
+import MessageContainer from "../MessageContainer";
 
 interface IdleStateProps {
   email: string;
@@ -9,6 +11,13 @@ interface IdleStateProps {
 
 export function IdleState({ email }: IdleStateProps) {
   const [countdown, setCountdown] = useState<number>(0);
+
+  const {
+    mutate: resendVerification,
+    isPending,
+    error: mutationError,
+    reset: resetMutation,
+  } = useResendVerification();
 
   useEffect(() => {
     if (countdown <= 0) {
@@ -23,8 +32,24 @@ export function IdleState({ email }: IdleStateProps) {
   }, [countdown]);
 
   const handleResend = useCallback(() => {
-    setCountdown(60);
-  }, []);
+    if (countdown > 0 || isPending || !email) {
+      return;
+    }
+
+    resetMutation();
+    resendVerification(
+      { email },
+      {
+        onSuccess: () => {
+          setCountdown(60);
+        },
+      }
+    );
+  }, [email, countdown, isPending, resendVerification, resetMutation]);
+
+  const error = mutationError
+    ? mutationError.errorDescription || mutationError.message
+    : null;
 
   return (
     <AuthCard>
@@ -54,6 +79,12 @@ export function IdleState({ email }: IdleStateProps) {
             .
           </p>
         </div>
+
+        {!!error && (
+          <div className="w-full max-w-sm">
+            <MessageContainer message={error} type="error" />
+          </div>
+        )}
       </AuthCard.Body>
       <AuthCard.Footer>
         <p className="flex items-center justify-center gap-1 text-gray-400 text-sm">

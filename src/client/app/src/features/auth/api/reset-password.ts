@@ -17,7 +17,7 @@ export async function requestResetPasswordCommand(
   return await safeRequest<void>({
     data: payload,
     method: "POST",
-    url: "/v1/identity/forget-password",
+    url: "/api/v1/identity/forget-password",
   });
 }
 
@@ -27,6 +27,6 @@ export async function resetPasswordCommand(
   return await safeRequest<void>({
     data: payload,
     method: "POST",
-    url: "/v1/identity/reset-password",
+    url: "/api/v1/identity/reset-password",
   });
 }

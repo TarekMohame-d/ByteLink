@@ -20,7 +20,7 @@ export async function signInCommand(
   return await safeRequest({
     data: payload,
     method: "POST",
-    url: "/v1/identity/login",
+    url: "/api/v1/identity/login",
   });
 }
 
@@ -30,6 +30,6 @@ export async function signUpCommand(
   return await safeRequest({
     data: payload,
     method: "POST",
-    url: "/v1/identity/register",
+    url: "/api/v1/identity/register",
   });
 }

@@ -2,11 +2,11 @@ import z from "zod";
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    BASE_URL: z.url("Must be a valid URL structure"),
+    // BASE_URL: z.url("Must be a valid URL structure"),
   });
 
   const envVars = {
-    BASE_URL: import.meta.env.VITE_APP_BASE_URL,
+    // BASE_URL: import.meta.env.VITE_APP_BASE_URL,
   };
 
   const parsedEnv = EnvSchema.safeParse(envVars);
