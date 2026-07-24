@@ -40,31 +40,10 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddHealthChecks();
 
-const string DevCorsPolicy = "_devCorsPolicy";
-
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy(
-            name: DevCorsPolicy,
-            policy =>
-            {
-                policy
-                    .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-            }
-        );
-    });
-}
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(DevCorsPolicy);
     app.MapOpenApi();
     app.MapScalarApiReference();
     // app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "ByteLink API"));
@@ -73,7 +52,7 @@ if (app.Environment.IsDevelopment())
 
 if (app.Environment.IsProduction())
 {
-    app.UseHttpsRedirection();
+    // app.UseHttpsRedirection();
     // app.UseCustomHangfireDashboard(builder.Configuration);
 }
 

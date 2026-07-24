@@ -16,7 +16,7 @@ export async function verifyEmailCommand(
   return await safeRequest<void>({
     data: payload,
     method: "POST",
-    url: "/v1/identity/verify-email",
+    url: "/api/v1/identity/verify-email",
   });
 }
 
@@ -26,6 +26,6 @@ export async function resendVerificationCommand(
   return await safeRequest<void>({
     data: payload,
     method: "POST",
-    url: "/v1/identity/resend-verification",
+    url: "/api/v1/identity/resend-verification",
   });
 }

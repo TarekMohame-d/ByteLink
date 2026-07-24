@@ -34,7 +34,9 @@ export const useAuthStore = create<AuthState>()(
 
       fetchMe: async () => {
         try {
-          const response = await apiClient.get<UserProfile>("/v1/identity/me");
+          const response = await apiClient.get<UserProfile>(
+            "/api/v1/identity/me"
+          );
           set({
             isAuthenticated: true,
             isInitialized: true,

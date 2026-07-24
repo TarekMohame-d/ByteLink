@@ -1,5 +1,4 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
-import { env } from "@/config/env";
 import { useAuthStore } from "@/store/authStore";
 import type { ApiError } from "@/types/api";
 import { failure, type Result, success } from "@/types/result";
@@ -17,7 +16,6 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 const identity = getOrCreateDeviceIdentity();
 
 const apiClient = axios.create({
-  baseURL: env.BASE_URL,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
