@@ -47,8 +47,6 @@ desktop.ini
 packages/
 !Directory.Packages.props
 
-# pnpm
-pnpm-lock.yaml
 
 ## ===========================================================
 ## 🛡️ Secrets & Logs
