@@ -22,6 +22,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 # Copy application source
 COPY src/client/app .
 
+# Declare build argument
+ARG VITE_APP_BASE_URL
+ENV VITE_APP_BASE_URL=$VITE_APP_BASE_URL
+
 # Build client bundle
 RUN pnpm build
 

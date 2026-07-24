@@ -68,3 +68,5 @@ jobs:
             ghcr.io/${{ env.REPO_LOWER }}/frontend:${{ env.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_APP_BASE_URL=https://bytelink.local/api
