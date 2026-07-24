@@ -1,51 +1,45 @@
 # ============================
-# Stage 1 - Base Runtime
+# Stage 1 - Build React App
 # ============================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-
-WORKDIR /app
-EXPOSE 8080
-
-USER $APP_UID
-
-# ============================
-# Stage 2 - Build
-# ============================
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM node:24-bookworm-slim AS build
 
 WORKDIR /src
 
-# Copy solution & props files for restore caching
-COPY Directory.Build.props .
-COPY Directory.Packages.props .
-COPY ByteLink.slnx .
+# Enable pnpm via Corepack
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable pnpm
 
-COPY src/backend/Host/ByteLink.Api/ByteLink.Api.csproj src/backend/Host/ByteLink.Api/
-COPY src/backend/Shared/Shared.csproj src/backend/Shared/
-COPY src/backend/Modules/Identity/Modules.Identity/Modules.Identity.csproj src/backend/Modules/Identity/Modules.Identity/
-COPY src/backend/Modules/Identity/Modules.Identity.IntegrationEvents/Modules.Identity.IntegrationEvents.csproj src/backend/Modules/Identity/Modules.Identity.IntegrationEvents/
-COPY src/backend/Modules/Notifications/Modules.Notifications/Modules.Notifications.csproj src/backend/Modules/Notifications/Modules.Notifications/
+# Copy dependency files first for layer caching
+COPY src/client/app/package.json .
+COPY src/client/app/pnpm-lock.yaml .
 
-# Cache NuGet packages across builds
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet restore src/backend/Host/ByteLink.Api/ByteLink.Api.csproj
+# Install dependencies using BuildKit cache
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm config set store-dir /pnpm/store && \
+    pnpm install --frozen-lockfile
 
-COPY . .
+# Copy application source
+COPY src/client/app .
 
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet publish src/backend/Host/ByteLink.Api/ByteLink.Api.csproj \
-    -c Release \
-    -o /app/publish \
-    --no-restore \
-    /p:UseAppHost=false
+# Build client bundle
+RUN pnpm build
 
 # ============================
-# Stage 3 - Final Runtime
+# Stage 2 - Production Runtime
 # ============================
-FROM base AS final
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS final
 
-WORKDIR /app
+# Configure container health check targeting the /health endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-COPY --from=build /app/publish .
+# Copy custom Nginx configuration (configured to listen on 8080)
+COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-ENTRYPOINT ["dotnet", "ByteLink.Api.dll"]
+# Copy compiled static assets
+COPY --from=build /src/dist /usr/share/nginx/html
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]
