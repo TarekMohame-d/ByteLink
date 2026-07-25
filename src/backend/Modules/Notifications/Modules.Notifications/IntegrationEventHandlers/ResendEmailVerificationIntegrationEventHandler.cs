@@ -9,7 +9,7 @@ namespace Modules.Notifications.IntegrationEventHandlers;
 public class ResendEmailVerificationIntegrationEventHandler(IFileReader fileReader, IFluentEmail fluentEmail)
     : IIntegrationEventHandler<ResendEmailVerificationIntegrationEvent>
 {
-    [CapSubscribe(nameof(ResendEmailVerificationIntegrationEvent))]
+    [CapSubscribe(nameof(ResendEmailVerificationIntegrationEvent), Group = "notifications-module-group")]
     public async Task HandleAsync(
         ResendEmailVerificationIntegrationEvent integrationEvent,
         CancellationToken ct
