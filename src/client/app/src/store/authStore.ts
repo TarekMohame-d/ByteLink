@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import apiClient from "@/lib/api-client";
 
-interface UserProfile {
+export interface UserProfile {
   email: string;
   firstName: string;
   lastName: string;
@@ -13,6 +13,7 @@ interface UserProfile {
 interface AuthState {
   clearAuth: () => void;
   fetchMe: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
   isAuthenticated: boolean;
   isInitialized: boolean;
   setAuth: (user: UserProfile) => void;
@@ -22,7 +23,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       clearAuth: () => {
         set({
           isAuthenticated: false,
@@ -50,6 +51,19 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             wasLoggedIn: false,
           });
+        }
+      },
+
+      initializeAuth: async () => {
+        const { isInitialized, wasLoggedIn, fetchMe } = get();
+        if (isInitialized) {
+          return;
+        }
+
+        if (wasLoggedIn) {
+          await fetchMe();
+        } else {
+          set({ isAuthenticated: false, isInitialized: true, user: null });
         }
       },
       isAuthenticated: false,
