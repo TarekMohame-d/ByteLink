@@ -1,22 +1,22 @@
-name: Deploy to Production
+# name: Deploy to Production
 
-on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types: [completed]
-    branches: [main]
+# on:
+#   workflow_run:
+#     workflows: ["Build and Push Docker Images"]
+#     types: [completed]
+#     branches: [main]
 
-jobs:
-  deploy:
-    name: Trigger Local Deployment
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
+# jobs:
+#   deploy:
+#     name: Trigger Local Deployment
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     runs-on: self-hosted
 
-    steps:
-      - name: Compute Short SHA
-        run: |
-          FULL_SHA="${{ github.event.workflow_run.head_sha }}"
-          echo "SHORT_SHA=${FULL_SHA::7}" >> $GITHUB_ENV
+#     steps:
+#       - name: Compute Short SHA
+#         run: |
+#           FULL_SHA="${{ github.event.workflow_run.head_sha }}"
+#           echo "SHORT_SHA=${FULL_SHA::7}" >> $GITHUB_ENV
 
-      - name: Execute Deploy Script with Commit Tag
-        run: /srv/apps/bytelink/deploy.sh "${{ env.SHORT_SHA }}"
+#       - name: Execute Deploy Script with Commit Tag
+#         run: /srv/apps/bytelink/deploy.sh "${{ env.SHORT_SHA }}"
