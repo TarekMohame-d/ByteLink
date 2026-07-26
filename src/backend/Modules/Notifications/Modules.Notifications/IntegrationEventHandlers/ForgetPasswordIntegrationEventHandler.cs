@@ -9,7 +9,7 @@ namespace Modules.Notifications.IntegrationEventHandlers;
 public class ForgetPasswordIntegrationEventHandler(IFileReader fileReader, IFluentEmail fluentEmail)
     : IIntegrationEventHandler<ForgetPasswordIntegrationEvent>
 {
-    [CapSubscribe(nameof(ForgetPasswordIntegrationEvent))]
+    [CapSubscribe(nameof(ForgetPasswordIntegrationEvent), Group = "notifications-module-group")]
     public async Task HandleAsync(ForgetPasswordIntegrationEvent integrationEvent, CancellationToken ct)
     {
         var frontendUrl = Environment.GetEnvironmentVariable("FrontendUrl");

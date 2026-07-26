@@ -21,6 +21,21 @@ services:
     networks:
       - bytelink-net
 
+  rabbitmq:
+    image: rabbitmq:4.3-management
+    container_name: bytelink-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - bytelink_rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - bytelink-net
+
   seq:
     image: datalust/seq:latest
     container_name: bytelink-seq
@@ -64,6 +79,8 @@ services:
 volumes:
   bytelink_db_data:
     name: bytelink_db_data
+  bytelink_rabbitmq_data:
+    name: bytelink_rabbitmq_data
   bytelink_pgadmin_data:
     name: bytelink_pgadmin_data
   bytelink_mailpit_data:

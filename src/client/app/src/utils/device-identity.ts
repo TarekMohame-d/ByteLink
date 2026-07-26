@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export interface DeviceInfo {
   deviceId: string;
   deviceMetadata: string;
@@ -26,7 +28,7 @@ export const getOrCreateDeviceIdentity = (): DeviceInfo => {
   let deviceId = localStorage.getItem("app_device_id");
 
   if (!deviceId) {
-    deviceId = crypto.randomUUID();
+    deviceId = uuidv4();
     localStorage.setItem("app_device_id", deviceId);
   }
 

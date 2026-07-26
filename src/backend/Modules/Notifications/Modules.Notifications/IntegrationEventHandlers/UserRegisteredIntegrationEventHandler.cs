@@ -9,7 +9,7 @@ namespace Modules.Notifications.IntegrationEventHandlers;
 public class UserRegisteredIntegrationEventHandler(IFileReader fileReader, IFluentEmail fluentEmail)
     : IIntegrationEventHandler<UserRegisteredIntegrationEvent>
 {
-    [CapSubscribe(nameof(UserRegisteredIntegrationEvent))]
+    [CapSubscribe(nameof(UserRegisteredIntegrationEvent), Group = "notifications-module-group")]
     public async Task HandleAsync(UserRegisteredIntegrationEvent integrationEvent, CancellationToken ct)
     {
         var frontendUrl = Environment.GetEnvironmentVariable("FrontendUrl");

@@ -162,6 +162,8 @@ public static class DependencyInjection
                     JitterMaxDuration = TimeSpan.FromSeconds(10),
                     IsFailSafeEnabled = true,
                     FailSafeMaxDuration = TimeSpan.FromHours(1),
+                    FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+                    EagerRefreshThreshold = 0.9f,
                 };
             })
             .WithSerializer(new FusionCacheSystemTextJsonSerializer())
@@ -191,8 +193,27 @@ public static class DependencyInjection
                 opt.Schema = "cap";
             });
 
-            options.UseInMemoryMessageQueue();
+            // options.UseInMemoryMessageQueue();
             options.UseDashboard(path => path.PathMatch = "/cap-dashboard");
+
+            options.UseRabbitMQ(rabbit =>
+            {
+                rabbit.HostName = configuration["RabbitMQ:HostName"]!;
+                rabbit.Port = int.Parse(configuration["RabbitMQ:Port"]!);
+                rabbit.UserName = configuration["RabbitMQ:UserName"]!;
+                rabbit.Password = configuration["RabbitMQ:Password"]!;
+                rabbit.VirtualHost = configuration["RabbitMQ:VirtualHost"]!;
+
+                rabbit.ExchangeName = "cap.default.router";
+
+                rabbit.ConnectionFactoryOptions = opt =>
+                {
+                    opt.AutomaticRecoveryEnabled = true;
+                    opt.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
+                };
+            });
+
+            options.ConsumerThreadCount = 2;
         });
 
         return services;
