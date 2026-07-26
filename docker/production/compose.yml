@@ -5,38 +5,23 @@ networks:
     driver: bridge
 
 services:
-
   postgres:
     image: postgres:18.4
     restart: unless-stopped
     pull_policy: always
-
     env_file:
       - .env
-
     environment:
       POSTGRES_USER: ${DB_ADMIN_USER}
       POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
-
     volumes:
       - /srv/data/bytelink/postgres:/var/lib/postgresql
-
-    ports:
-      - "127.0.0.1:5432:5432"
-
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER} -d ${DB_DATABASE}" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
     networks:
       - internal
 
@@ -44,25 +29,13 @@ services:
     image: valkey/valkey:9.1
     restart: unless-stopped
     pull_policy: always
-
     volumes:
       - /srv/data/bytelink/valkey:/data
-
-    expose:
-      - "6379"
-
     healthcheck:
       test: [ "CMD", "valkey-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
     networks:
       - internal
 
@@ -70,42 +43,46 @@ services:
     image: datalust/seq:2025.2
     restart: unless-stopped
     pull_policy: always
-
     env_file:
       - .env
-
     environment:
-      ACCEPT_EULA: Y
+      ACCEPT_EULA: "Y"
       SEQ_PASSWORD: ${SEQ_PASSWORD}
-
     volumes:
       - /srv/data/bytelink/seq:/data
+    networks:
+      - internal
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     ports:
-      - "127.0.0.1:5341:80"
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - /srv/data/bytelink/rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - internal
 
   migrator:
     image: ${MIGRATOR_IMAGE}
-    profiles: [ "tools" ]
     restart: "no"
     pull_policy: always
-
     env_file:
       - .env
-
     depends_on:
       postgres:
         condition: service_healthy
-
     networks:
       - internal
 
@@ -113,40 +90,24 @@ services:
     image: ${BACKEND_IMAGE}
     restart: unless-stopped
     pull_policy: always
-
     env_file:
       - .env
-
-    environment:
-      ASPNETCORE_URLS: "http://+:8080"
-
-    ports:
-      - "127.0.0.1:5000:8080"
-
     depends_on:
       postgres:
         condition: service_healthy
       valkey:
         condition: service_healthy
-
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     stop_grace_period: 30s
-
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-    labels:
-      app: bytelink
-
     networks:
       - internal
 
@@ -154,31 +115,15 @@ services:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
     pull_policy: always
-
-    ports:
-      - "127.0.0.1:3000:8080"
-
     depends_on:
       backend:
         condition: service_healthy
-
     stop_grace_period: 15s
-
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/health" ]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-    labels:
-      app: bytelink
-
     networks:
       - internal
