@@ -58,9 +58,3 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm --prefix src/client/app install --frozen-lockfile
-
-      # - name: Run Biome Check
-      #   run: pnpm --prefix src/client/app exec biome check .
-
-      # - name: Type Check
-      #   run: pnpm --prefix src/client/app run build

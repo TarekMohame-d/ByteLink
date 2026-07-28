@@ -1,5 +1,4 @@
-using DotNetCore.CAP;
-using Shared.Kernel.Messaging;
+using Shared.Infrastructure.Messaging;
 
 namespace Modules.Identity.IntegrationEvents;
 

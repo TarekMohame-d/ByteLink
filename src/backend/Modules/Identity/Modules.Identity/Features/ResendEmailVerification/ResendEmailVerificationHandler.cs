@@ -1,8 +1,8 @@
-using DotNetCore.CAP;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Infrastructure.Persistence;
 using Modules.Identity.IntegrationEvents;
 using Modules.Identity.Interfaces;
+using Shared.Infrastructure.Messaging;
 using Shared.Kernel.Messaging;
 using Shared.Kernel.ResultPattern;
 
@@ -12,7 +12,8 @@ internal sealed class ResendEmailVerificationHandler(
     IdentityDbContext dbContext,
     ISecureGenerator secureGenerator,
     ISecureHasher secureHasher,
-    ICapPublisher capBus
+    IOutboxWriter<IdentityDbContext> outboxWriter,
+    OutboxSignalChannel signalChannel
 ) : ICommandHandler<ResendEmailVerificationCommand>
 {
     public async Task<Result> Handle(ResendEmailVerificationCommand command, CancellationToken ct)
@@ -45,11 +46,11 @@ internal sealed class ResendEmailVerificationHandler(
 
         var integrationEvent = new ResendEmailVerificationIntegrationEvent(email, token, expiresIn);
 
-        await capBus.PublishAsync(
-            nameof(ResendEmailVerificationIntegrationEvent),
-            integrationEvent,
-            cancellationToken: ct
-        );
+        outboxWriter.Write(integrationEvent);
+
+        await dbContext.SaveChangesAsync(ct);
+
+        signalChannel.Signal();
 
         return Result.Success();
     }

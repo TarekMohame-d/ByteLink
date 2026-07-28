@@ -12,7 +12,7 @@ const ExpiredFormSchema = z.object({
 
 interface ExpiredStateProps {
   initialEmail: string;
-  onSuccess: (status: "verifying" | "success" | "expired" | "idle") => void;
+  onSuccess: () => void;
 }
 
 export function ExpiredState({ initialEmail, onSuccess }: ExpiredStateProps) {
@@ -42,7 +42,7 @@ export function ExpiredState({ initialEmail, onSuccess }: ExpiredStateProps) {
         { email },
         {
           onSuccess: () => {
-            onSuccess("idle");
+            onSuccess();
           },
         }
       );

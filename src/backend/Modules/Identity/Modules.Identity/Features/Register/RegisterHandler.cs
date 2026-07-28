@@ -1,9 +1,9 @@
-using DotNetCore.CAP;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Domain;
 using Modules.Identity.Infrastructure.Persistence;
 using Modules.Identity.IntegrationEvents;
 using Modules.Identity.Interfaces;
+using Shared.Infrastructure.Messaging;
 using Shared.Kernel.Messaging;
 using Shared.Kernel.ResultPattern;
 
@@ -13,7 +13,8 @@ internal sealed class RegisterHandler(
     IdentityDbContext dbContext,
     ISecureHasher secureHasher,
     ISecureGenerator secureGenerator,
-    ICapPublisher capBus
+    IOutboxWriter<IdentityDbContext> outboxWriter,
+    OutboxSignalChannel signalChannel
 ) : ICommandHandler<RegisterCommand, Guid>
 {
     public async Task<Result<Guid>> Handle(RegisterCommand command, CancellationToken ct)
@@ -45,11 +46,11 @@ internal sealed class RegisterHandler(
         dbContext.Users.Add(user);
         dbContext.EmailVerificationTokens.Add(emailVerification);
 
-        await capBus.PublishAsync(
-            nameof(UserRegisteredIntegrationEvent),
-            integrationEvent,
-            cancellationToken: ct
-        );
+        outboxWriter.Write(integrationEvent);
+
+        await dbContext.SaveChangesAsync(ct);
+
+        signalChannel.Signal();
 
         return user.Id;
     }

@@ -59,7 +59,7 @@ if (shouldReset)
 EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
 // Define Monolith Modules
-var modules = new[] { "Identity" };
+var modules = new[] { "Identity", "Messaging" };
 
 // Execute Migrations Per Module (Isolated Schemas)
 foreach (var module in modules)

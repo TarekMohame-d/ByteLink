@@ -1,19 +1,33 @@
-using DotNetCore.CAP;
 using FluentEmail.Core;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.IntegrationEvents;
 using Modules.Notifications.Interfaces;
-using Shared.Kernel.Messaging;
+using Shared.Infrastructure.Messaging;
 
 namespace Modules.Notifications.IntegrationEventHandlers;
 
-public class ForgetPasswordIntegrationEventHandler(IFileReader fileReader, IFluentEmail fluentEmail)
-    : IIntegrationEventHandler<ForgetPasswordIntegrationEvent>
+public class ForgetPasswordIntegrationEventHandler(
+    IFileReader fileReader,
+    IFluentEmail fluentEmail,
+    IInboxStore inboxStore,
+    ILogger<ForgetPasswordIntegrationEventHandler> logger
+) : IIntegrationEventHandler<ForgetPasswordIntegrationEvent>
 {
-    [CapSubscribe(nameof(ForgetPasswordIntegrationEvent), Group = "notifications-module-group")]
     public async Task HandleAsync(ForgetPasswordIntegrationEvent integrationEvent, CancellationToken ct)
     {
-        var frontendUrl = Environment.GetEnvironmentVariable("FrontendUrl");
+        string consumerName = GetType().Name;
 
+        if (await inboxStore.HasBeenProcessedAsync(integrationEvent.EventId, consumerName, ct))
+        {
+            logger.LogInformation(
+                "Event {EventId} was already processed by {ConsumerName}. Skipping email.",
+                integrationEvent.EventId,
+                consumerName
+            );
+            return;
+        }
+
+        var frontendUrl = Environment.GetEnvironmentVariable("FrontendUrl");
         var resetLink = $"{frontendUrl}/auth/reset-password?token={integrationEvent.Token}";
 
         var html = fileReader
@@ -27,5 +41,7 @@ public class ForgetPasswordIntegrationEventHandler(IFileReader fileReader, IFlue
             .Subject("Forget Password for ByteLink Account")
             .Body(html, isHtml: true)
             .SendAsync(ct);
+
+        await inboxStore.MarkAsProcessedAsync(integrationEvent.EventId, consumerName, ct);
     }
 }

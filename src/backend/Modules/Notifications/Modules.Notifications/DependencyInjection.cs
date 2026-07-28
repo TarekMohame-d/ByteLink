@@ -34,6 +34,7 @@ internal static class DependencyInjection
 
         services.AddSingleton<IFileReader, FileReader>();
         services.AddIntegrationEventHandlersFromAssembly(assembly);
+        services.AddResilientIntegrationEventHandlers();
 
         return services;
     }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Domain;
+using Shared.Infrastructure.Messaging.Extensions;
 
 namespace Modules.Identity.Infrastructure.Persistence;
 
@@ -15,8 +16,9 @@ public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : Db
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
         modelBuilder.HasDefaultSchema(Schema);
+
+        modelBuilder.ApplyMessagingConfigurations();
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
     }
 }

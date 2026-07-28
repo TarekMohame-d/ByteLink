@@ -5,12 +5,10 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-using Modules.Identity.Infrastructure.Persistence;
 using Npgsql;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
-using Savorboard.CAP.InMemoryMessageQueue;
 using Shared.Constants;
 using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion;
@@ -23,21 +21,18 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddHostServices(
         this IServiceCollection services,
-        IConfiguration configuration,
-        IHostBuilder host
+        IConfiguration configuration
     )
     {
         services.AddExceptionHandling();
 
-        // services.AddHangfireBackgroundJobs(configuration);
+        services.AddHangfireBackgroundJobs(configuration);
 
         services.AddApplicationResilience();
 
         services.AddHttpContextAccessor();
 
         services.AddCache(configuration);
-
-        services.AddCAP(configuration);
 
         return services;
     }
@@ -73,21 +68,28 @@ public static class DependencyInjection
     {
         services.AddHangfire(config =>
         {
-            config.UsePostgreSqlStorage(
-                options =>
-                    options.UseNpgsqlConnection(configuration.GetConnectionString("DefaultConnection")),
-                new PostgreSqlStorageOptions
-                {
-                    SchemaName = "hangfire",
+            config
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(
+                    options =>
+                        options.UseNpgsqlConnection(configuration.GetConnectionString("DefaultConnection")),
+                    new PostgreSqlStorageOptions
+                    {
+                        SchemaName = "hangfire",
 
-                    // optionally tune other settings:
-                    // QueuePollInterval = TimeSpan.FromSeconds(15),
-                    // InvisibilityTimeout = TimeSpan.FromMinutes(30),
-                    // TablePrefix = "hf_",
-                }
-            );
+                        // optionally tune other settings:
+                        // QueuePollInterval = TimeSpan.FromSeconds(15),
+                        // InvisibilityTimeout = TimeSpan.FromMinutes(30),
+                        // TablePrefix = "hf_",
+                    }
+                );
         });
-        services.AddHangfireServer(options => options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
+
+        services.AddHangfireServer(options =>
+        {
+            options.WorkerCount = Environment.ProcessorCount * 2;
+            options.SchedulePollingInterval = TimeSpan.FromSeconds(1);
+        });
 
         return services;
     }
@@ -177,44 +179,6 @@ public static class DependencyInjection
                     }
                 )
             );
-
-        return services;
-    }
-
-    private static IServiceCollection AddCAP(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddCap(options =>
-        {
-            options.UseEntityFramework<IdentityDbContext>();
-
-            options.UsePostgreSql(opt =>
-            {
-                opt.ConnectionString = configuration.GetConnectionString("DefaultConnection");
-                opt.Schema = "cap";
-            });
-
-            // options.UseInMemoryMessageQueue();
-            options.UseDashboard(path => path.PathMatch = "/cap-dashboard");
-
-            options.UseRabbitMQ(rabbit =>
-            {
-                rabbit.HostName = configuration["RabbitMQ:HostName"]!;
-                rabbit.Port = int.Parse(configuration["RabbitMQ:Port"]!);
-                rabbit.UserName = configuration["RabbitMQ:UserName"]!;
-                rabbit.Password = configuration["RabbitMQ:Password"]!;
-                rabbit.VirtualHost = configuration["RabbitMQ:VirtualHost"]!;
-
-                rabbit.ExchangeName = "cap.default.router";
-
-                rabbit.ConnectionFactoryOptions = opt =>
-                {
-                    opt.AutomaticRecoveryEnabled = true;
-                    opt.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
-                };
-            });
-
-            options.ConsumerThreadCount = 2;
-        });
 
         return services;
     }

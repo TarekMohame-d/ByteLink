@@ -2,7 +2,6 @@
   <ItemGroup>
     <PackageReference Include="FluentEmail.Smtp" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="DotNetCore.CAP" />
   </ItemGroup>
 
   <ItemGroup>

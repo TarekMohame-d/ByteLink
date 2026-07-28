@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ByteLink.Api;
+using ByteLink.Api.Extensions;
 using ByteLink.Api.Middlewares;
 using dotenv.net;
 using Modules.Identity;
@@ -24,7 +25,7 @@ builder.Host.UseSerilog(
 
 // Add services to the container.
 builder
-    .Services.AddHostServices(builder.Configuration, builder.Host)
+    .Services.AddHostServices(builder.Configuration)
     .AddSharedServices(builder.Configuration)
     .AddIdentityModule(builder.Configuration)
     .AddNotificationsModule(builder.Configuration);
@@ -47,13 +48,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
     // app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "ByteLink API"));
-    // app.UseCustomHangfireDashboard(builder.Configuration);
-}
-
-if (app.Environment.IsProduction())
-{
-    // app.UseHttpsRedirection();
-    // app.UseCustomHangfireDashboard(builder.Configuration);
 }
 
 app.UseMiddleware<RequestLogContextMiddleware>();
@@ -95,6 +89,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");
+
+app.UseCustomHangfireDashboard(builder.Configuration);
+
+app.UseHangfireJobs();
+
 app.MapIdentityEndpoints();
 
 // app.UseIdentityModuleBackgroundJobs(builder.Environment);

@@ -1,9 +1,9 @@
-using DotNetCore.CAP;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Domain;
 using Modules.Identity.Infrastructure.Persistence;
 using Modules.Identity.IntegrationEvents;
 using Modules.Identity.Interfaces;
+using Shared.Infrastructure.Messaging;
 using Shared.Kernel.Messaging;
 using Shared.Kernel.ResultPattern;
 
@@ -13,7 +13,8 @@ internal sealed class ForgetPasswordHandler(
     IdentityDbContext dbContext,
     ISecureGenerator secureGenerator,
     ISecureHasher secureHasher,
-    ICapPublisher capBus
+    IOutboxWriter<IdentityDbContext> outboxWriter,
+    OutboxSignalChannel signalChannel
 ) : ICommandHandler<ForgetPasswordCommand>
 {
     public async Task<Result> Handle(ForgetPasswordCommand command, CancellationToken ct)
@@ -38,11 +39,11 @@ internal sealed class ForgetPasswordHandler(
 
         dbContext.ForgetPasswordTokens.Add(forgetPassword);
 
-        await capBus.PublishAsync(
-            nameof(ForgetPasswordIntegrationEvent),
-            integrationEvent,
-            cancellationToken: ct
-        );
+        outboxWriter.Write(integrationEvent);
+
+        await dbContext.SaveChangesAsync(ct);
+
+        signalChannel.Signal();
 
         return Result.Success();
     }
