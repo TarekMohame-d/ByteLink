@@ -1,7 +1,12 @@
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Decorator;
+using Shared.Infrastructure.Dispatchers;
+using Shared.Infrastructure.Messaging;
+using Shared.Infrastructure.Messaging.Jobs;
+using Shared.Infrastructure.Persistence;
 using Shared.Kernel.Messaging;
 using Shared.Kernel.Settings;
 
@@ -17,6 +22,8 @@ public static class DependencyInjection
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.Configure<AdminSettings>(configuration.GetSection("AdminSettings"));
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+        services.AddMessagingInfrastructure(configuration);
 
         return services;
     }
@@ -63,6 +70,8 @@ public static class DependencyInjection
         Assembly assembly
     )
     {
+        services.AddScoped<IIntegrationEventDispatcher, IntegrationEventDispatcher>();
+
         services.Scan(scan =>
             scan.FromAssemblies(assembly)
                 .AddClasses(c => c.AssignableTo(typeof(IIntegrationEventHandler<>)), publicOnly: false)
@@ -70,6 +79,45 @@ public static class DependencyInjection
                 .AsSelf()
                 .WithScopedLifetime()
         );
+
+        return services;
+    }
+
+    public static IServiceCollection AddResilientIntegrationEventHandlers(this IServiceCollection services)
+    {
+        bool hasHandlers = services.Any(sd =>
+            sd.ServiceType.IsGenericType
+            && sd.ServiceType.GetGenericTypeDefinition() == typeof(IIntegrationEventHandler<>)
+        );
+
+        if (hasHandlers)
+        {
+            services.Decorate(typeof(IIntegrationEventHandler<>), typeof(ResilientIntegrationEventHandler<>));
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddMessagingInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddDbContext<MessagingDbContext>(options =>
+            options
+                .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                .UseSnakeCaseNamingConvention()
+        );
+
+        services.AddScoped(typeof(IOutboxWriter<>), typeof(OutboxWriter<>));
+        services.AddScoped(typeof(IInboxStore<>), typeof(InboxStore<>));
+        services.AddScoped<IInboxStore, InboxStore>();
+
+        services.AddSingleton<OutboxSignalChannel>();
+
+        services.AddHostedService<OutboxProcessorBackgroundService>();
+
+        services.AddScoped<IOutboxInboxCleanupService, OutboxInboxCleanupService>();
 
         return services;
     }

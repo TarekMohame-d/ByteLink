@@ -7,12 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Identity.Infrastructure.Auth;
-using Modules.Identity.Infrastructure.Decorators;
 using Modules.Identity.Infrastructure.Persistence;
 using Modules.Identity.Infrastructure.Services;
 using Modules.Identity.Interfaces;
 using Shared;
-using Shared.Infrastructure.Decorator;
 using Shared.Kernel.Settings;
 
 namespace Modules.Identity;
@@ -42,12 +40,7 @@ internal static class DependencyInjection
 
         services.AddHandlersFromAssembly(asm);
         services.AddIntegrationEventHandlersFromAssembly(asm);
-
-        services.DecorateModuleTransactionalHandlers(
-            asm,
-            typeof(IdentityTransactionDecorator<>),
-            typeof(IdentityTransactionDecorator<,>)
-        );
+        services.AddResilientIntegrationEventHandlers();
 
         services.AddValidatorsFromAssembly(asm, ServiceLifetime.Scoped, includeInternalTypes: true);
 

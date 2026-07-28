@@ -33,11 +33,6 @@
     <PackageVersion Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" Version="2.6.0" />
     <PackageVersion Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.6.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
-    <PackageVersion Include="DotNetCore.CAP" Version="10.0.1" />
-    <PackageVersion Include="DotNetCore.CAP.PostgreSql" Version="10.0.1" />
-    <PackageVersion Include="DotNetCore.CAP.Dashboard" Version="10.0.1" />
-    <PackageVersion Include="Savorboard.CAP.InMemoryMessageQueue" Version="10.0.0" />
-    <PackageVersion Include="DotNetCore.CAP.RabbitMQ" Version="10.0.2-preview-287480508" />
 
     <!-- Test -->
     <PackageVersion Include="Shouldly" Version="4.3.0" />

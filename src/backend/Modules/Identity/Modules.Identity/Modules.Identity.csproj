@@ -10,10 +10,6 @@
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="ZiggyCreatures.FusionCache" />
-    <PackageReference Include="DotNetCore.CAP" />
-    <PackageReference Include="DotNetCore.CAP.PostgreSql" />
-    <PackageReference Include="DotNetCore.CAP.Dashboard" />
-    <PackageReference Include="Savorboard.CAP.InMemoryMessageQueue" />
   </ItemGroup>
 
   <ItemGroup>

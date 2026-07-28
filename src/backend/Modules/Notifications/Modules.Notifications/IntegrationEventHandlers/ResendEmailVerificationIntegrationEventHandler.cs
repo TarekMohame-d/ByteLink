@@ -1,20 +1,35 @@
-using DotNetCore.CAP;
 using FluentEmail.Core;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.IntegrationEvents;
 using Modules.Notifications.Interfaces;
-using Shared.Kernel.Messaging;
+using Shared.Infrastructure.Messaging;
 
 namespace Modules.Notifications.IntegrationEventHandlers;
 
-public class ResendEmailVerificationIntegrationEventHandler(IFileReader fileReader, IFluentEmail fluentEmail)
-    : IIntegrationEventHandler<ResendEmailVerificationIntegrationEvent>
+public class ResendEmailVerificationIntegrationEventHandler(
+    IFileReader fileReader,
+    IFluentEmail fluentEmail,
+    IInboxStore inboxStore,
+    ILogger<ResendEmailVerificationIntegrationEventHandler> logger
+) : IIntegrationEventHandler<ResendEmailVerificationIntegrationEvent>
 {
-    [CapSubscribe(nameof(ResendEmailVerificationIntegrationEvent), Group = "notifications-module-group")]
     public async Task HandleAsync(
         ResendEmailVerificationIntegrationEvent integrationEvent,
         CancellationToken ct
     )
     {
+        string consumerName = GetType().Name;
+
+        if (await inboxStore.HasBeenProcessedAsync(integrationEvent.EventId, consumerName, ct))
+        {
+            logger.LogInformation(
+                "Event {EventId} was already processed by {ConsumerName}. Skipping email.",
+                integrationEvent.EventId,
+                consumerName
+            );
+            return;
+        }
+
         var frontendUrl = Environment.GetEnvironmentVariable("FrontendUrl");
 
         var verificationLink =
@@ -31,5 +46,7 @@ public class ResendEmailVerificationIntegrationEventHandler(IFileReader fileRead
             .Subject("Email Verification for ByteLink Account")
             .Body(html, isHtml: true)
             .SendAsync(ct);
+
+        await inboxStore.MarkAsProcessedAsync(integrationEvent.EventId, consumerName, ct);
     }
 }

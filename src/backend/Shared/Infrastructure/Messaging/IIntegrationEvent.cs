@@ -1,4 +1,4 @@
-namespace Shared.Kernel.Messaging;
+namespace Shared.Infrastructure.Messaging;
 
 public interface IIntegrationEvent
 {

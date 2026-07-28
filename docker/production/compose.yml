@@ -15,6 +15,8 @@ services:
       POSTGRES_USER: ${DB_ADMIN_USER}
       POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "100.64.0.1:5432:5432"
     volumes:
       - /srv/data/bytelink/postgres:/var/lib/postgresql
     healthcheck:
@@ -29,6 +31,8 @@ services:
     image: valkey/valkey:9.1
     restart: unless-stopped
     pull_policy: always
+    ports:
+      - "100.64.0.1:6379:6379"
     volumes:
       - /srv/data/bytelink/valkey:/data
     healthcheck:
@@ -48,34 +52,15 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       SEQ_PASSWORD: ${SEQ_PASSWORD}
+    ports:
+      - "100.64.0.1:5341:80"
     volumes:
       - /srv/data/bytelink/seq:/data
     networks:
       - internal
 
-  rabbitmq:
-    image: rabbitmq:4-management
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - /srv/data/bytelink/rabbitmq:/var/lib/rabbitmq
-    healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - internal
-
   migrator:
-    image: ${MIGRATOR_IMAGE}
+    image: ghcr.io/tarekmohame-d/bytelink/migrator:latest
     restart: "no"
     pull_policy: always
     env_file:
@@ -87,7 +72,7 @@ services:
       - internal
 
   backend:
-    image: ${BACKEND_IMAGE}
+    image: ghcr.io/tarekmohame-d/bytelink/backend:latest
     restart: unless-stopped
     pull_policy: always
     env_file:
@@ -112,7 +97,7 @@ services:
       - internal
 
   frontend:
-    image: ${FRONTEND_IMAGE}
+    image: ghcr.io/tarekmohame-d/bytelink/frontend:latest
     restart: unless-stopped
     pull_policy: always
     depends_on:
